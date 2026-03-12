@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player CRUD</title>
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+</head>
+<body>
+
+    <!-- Aurora background layers -->
+    <div class="aurora-streaks"></div>
+
+    <div class="page-wrapper">
+
+        <!-- ── PAGE HEADER ─────────────────────────────── -->
+        <div class="page-header">
+            <h1 class="page-title">Player Manager</h1>
+
+            <!-- Trigger button — opens the Add Player modal -->
+            <button class="btn btn-primary" id="btn-open-add">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                    <line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/>
+                </svg>
+                Add Player
+            </button>
+        </div>
+
+        <!-- ── TABLE ──────────────────────────────────── -->
+        <div class="table-frame">
+            <table class="player-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Birth Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                    <tr>
+                        <td data-label="Name">{{ player.name }}</td>
+                        <td data-label="Email">{{ player.email }}</td>
+                        <td data-label="Birth Date">{{ player.birth_date }}</td>
+                        <td data-label="Action" class="action-cell">
+
+                            <!-- Update button — submits its own form -->
+                            <form class="inline-form" action="updatePage" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="id" value="{{ player.id }}">
+                                <button type="submit" class="btn btn-edit">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M8.5 1.5l2 2-7 7H1.5v-2l7-7z"/>
+                                    </svg>
+                                    Edit
+                                </button>
+                            </form>
+
+                            <!-- Delete button — submits its own form -->
+                            <form class="inline-form" action="deletePlayer" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="id" value="{{ player.id }}">
+                                <button type="submit" class="btn btn-delete">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                                        <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+                                    </svg>
+                                    Delete
+                                </button>
+                            </form>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div><!-- /.page-wrapper -->
+
+
+    <!-- ════════════════════════════════════════════
+         ADD PLAYER MODAL
+    ════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modal-add" role="dialog" aria-modal="true" aria-labelledby="modal-add-title">
+        <div class="modal">
+
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-add-title">Add New Player</h2>
+                <button class="modal-close" id="btn-close-add" aria-label="Close modal">&#x2715;</button>
+            </div>
+
+            <form class="modal-form" action="addPlayer" method="post">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label" for="add-name">Player Name</label>
+                    <input class="form-input" type="text" id="add-name" name="name" placeholder="e.g. Alex Nova" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="add-email">Email Address</label>
+                    <input class="form-input" type="email" id="add-email" name="email" placeholder="player@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="add-birth">Birth Date</label>
+                    <input class="form-input" type="date" id="add-birth" name="birth_date" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" id="btn-cancel-add">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="2,7 5.5,10.5 11,3"/>
+                        </svg>
+                        Save Player
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- ════════════════════════════════════════════
+         MODAL SCRIPT
+    ════════════════════════════════════════════════ -->
+    <script>
+        const overlay   = document.getElementById('modal-add');
+        const btnOpen   = document.getElementById('btn-open-add');
+        const btnClose  = document.getElementById('btn-close-add');
+        const btnCancel = document.getElementById('btn-cancel-add');
+
+        function openModal()  {
+            overlay.classList.add('is-open');
+            document.body.classList.add('modal-open');
+            // Focus first input for accessibility
+            setTimeout(() => document.getElementById('add-name').focus(), 80);
+        }
+
+        function closeModal() {
+            overlay.classList.remove('is-open');
+            document.body.classList.remove('modal-open');
+        }
+
+        btnOpen.addEventListener('click', openModal);
+        btnClose.addEventListener('click', closeModal);
+        btnCancel.addEventListener('click', closeModal);
+
+        // Click outside modal panel closes it
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
+        });
+
+        // Escape key closes it
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeModal();
+        });
+    </script>
+
+</body>
+</html>

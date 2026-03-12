@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Player</title>
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+</head>
+<body>
+
+    <!-- Aurora background layers -->
+    <div class="aurora-streaks"></div>
+
+    <!-- Centered update card -->
+    <div class="update-page">
+        <div class="update-card">
+
+            <!-- Card header -->
+            <div class="update-card-header">
+                <h1 class="update-card-title">Edit Player</h1>
+                <p class="update-card-subtitle">Update the details below and save your changes.</p>
+            </div>
+
+            <!-- Update form -->
+            <form action="updatePlayer" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="id" value="{{ player.id }}">
+
+                <div class="update-form-body">
+
+                    <div class="form-group">
+                        <label class="form-label" for="u-name">Player Name</label>
+                        <input class="form-input" type="text" id="u-name"
+                               name="newName" value="{{ player.name }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="u-email">Email Address</label>
+                        <input class="form-input" type="email" id="u-email"
+                               name="newEmail" value="{{ player.email }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="u-birth">Birth Date</label>
+                        <input class="form-input" type="date" id="u-birth"
+                               name="newBirthDate" value="{{ player.birthDate }}">
+                    </div>
+
+                </div>
+
+                <div class="update-form-footer">
+                    <a href="/" class="btn btn-ghost">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="7,2 3,6 7,10"/><line x1="3" y1="6" x2="11" y2="6"/>
+                        </svg>
+                        Back
+                    </a>
+                    <button type="submit" class="btn btn-edit">
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="2,7 5.5,10.5 11,3"/>
+                        </svg>
+                        Save Changes
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</body>
+</html>
