@@ -1,8 +1,11 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import TodoList from './components/TodoList';
+import Login from './components/Login';
+import Register from './components/Register';
 import './App.css';
 
-function App() {
+function TodoPage() {
   return (
     <>
       <style>{`
@@ -419,6 +422,18 @@ function App() {
         <TodoList />
       </div>
     </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/"         element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/todos"    element={<TodoPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

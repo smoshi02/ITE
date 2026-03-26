@@ -1,82 +1,102 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from .models import TodoList
+from .models import TodoList, Users
+from django.contrib.auth.hashers import make_password, check_password
 from django.views.decorators.csrf import csrf_exempt
 import json
+from rest_framework import  viewsets
+from .serializers import TodoListSerializer
+
+# def renderIndex(request):
+#     return JsonResponse({"message": "API is running"})
 
 
-# Get API details
-def renderIndex(request):
-    details = list(ApiDetails.objects.all().values())
-    return JsonResponse({"message": details})
-
-
-# Add API user
+# # ── Register ──────────────────────────────────────────────────────────────────
+# # React sends: application/x-www-form-urlencoded  { username, password }
+# # Returns: 200 OK on success, 409 if username taken
 @csrf_exempt
-def fetchFromForm(request):
+def AddUserWithHash(request):
     if request.method == "POST":
-        data = json.loads(request.body)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-        username = data.get("username")
-        password = data.get("password")
+        if not username or not password:
+            return JsonResponse({"error": "Missing fields"}, status=400)
 
-        ApiDetails.objects.create(
-            username=username,
-            password=password
-        )
+        if Users.objects.filter(username=username).exists():
+            return JsonResponse({"error": "Username already taken"}, status=409)
 
-        return JsonResponse({
-            "username": username,
-            "password": password
-        })
+        hashed_password = make_password(password)
+        Users.objects.create(username=username, password=hashed_password)
+
+        return JsonResponse({"message": "Registered successfully"}, status=200)
+
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
 
-# Add Todo
+# # ── Login ─────────────────────────────────────────────────────────────────────
+# # React sends: application/json  { username, password }
+# # Returns: 200 OK on success, 401 on bad credentials
 @csrf_exempt
-def addTodo(request):
+def Authenticate(request):
     if request.method == "POST":
-        data = json.loads(request.body)
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+        except Exception:
+            return JsonResponse({"error": "Invalid request body"}, status=400)
 
-        title = data.get("title")
-        desc = data.get("description")
-        status = data.get("status")
+        try:
+            user = Users.objects.get(username=username)
+        except Users.DoesNotExist:
+            return JsonResponse({"error": "Invalid credentials"}, status=401)
 
-        TodoList.objects.create(
-            title=title,
-            description=desc,
-            status=status
-        )
+        if check_password(password, user.password):
+            return JsonResponse({"message": "Login successful"}, status=200)
+        else:
+            return JsonResponse({"error": "Invalid credentials"}, status=401)
 
-        return JsonResponse({"message": "Added successfully"})
-
-
-# Read all todos
-def readTodo(request):
-    if request.method == "GET":
-
-        todolists = list(TodoList.objects.all().values())
-
-        return JsonResponse({"lists": todolists})
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
 
-# Delete todo
-@csrf_exempt
-def deleteTodo(request, id):
-    if request.method == "POST":
+# # ── Todo CRUD ─────────────────────────────────────────────────────────────────
+# @csrf_exempt
+# def addTodo(request):
+#     if request.method == "POST":
+#         data = json.loads(request.body)
+#         TodoList.objects.create(
+#             title=data.get("title"),
+#             description=data.get("description"),
+#             status=data.get("status"),
+#         )
+#         return JsonResponse({"message": "Added successfully"})
 
-        TodoList.objects.filter(id=id).delete()
 
-        return JsonResponse({"message": "Deleted Successfully"})
-    
-@csrf_exempt
-def updateTodo(request, id):
-    if request.method == "POST":
-        data = json.loads(request.body)
+# def readTodo(request):
+#     if request.method == "GET":
+#         todolists = list(TodoList.objects.all().values())
+#         return JsonResponse({"lists": todolists})
 
-        TodoList.objects.filter(id=id).update(
-            title=data.get("title"),
-            description=data.get("description"),
-            status=data.get("status")
-        )
 
-        return JsonResponse({"message": "Updated Successfully"})
+# @csrf_exempt
+# def deleteTodo(request, id):
+#     if request.method == "POST":
+#         TodoList.objects.filter(id=id).delete()
+#         return JsonResponse({"message": "Deleted Successfully"})
+
+
+# @csrf_exempt
+# def updateTodo(request, id):
+#     if request.method == "POST":
+#         data = json.loads(request.body)
+#         TodoList.objects.filter(id=id).update(
+#             title=data.get("title"),
+#             description=data.get("description"),
+#             status=data.get("status"),
+#         )
+#         return JsonResponse({"message": "Updated Successfully"})
+
+class TodoListViewSets(viewsets.ModelViewSet):
+    queryset=TodoList.objects.all()
+    serializer_class=TodoListSerializer

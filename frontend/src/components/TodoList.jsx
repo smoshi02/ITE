@@ -397,7 +397,7 @@ function TodoList() {
 
   async function getData() {
     try {
-      const res = await fetch('http://localhost:8000/getTodo/', { method:'GET' });
+      const res = await fetch('http://localhost:8000/todolists/', { method:'GET' });
       const data = await res.json();
       setLists(data.lists.filter(t => !t.status));
       setDoneLists(data.lists.filter(t => t.status));
@@ -418,7 +418,7 @@ function TodoList() {
   }
 
   async function deleteTodo(id) {
-    try { await fetch(`http://localhost:8000/deleteTodo/${id}/`, {method:'POST'}); getData(); }
+    try { await fetch(`http://localhost:8000/todolists/${id}/`, {method:'DELETE'}); getData(); }
     catch(e){ console.error(e); } finally {
       clearTimeout(blackHoleTimer.current);
       blackHoleTimer.current = setTimeout(()=>setBlackHoleVisible(false), 800);
@@ -432,8 +432,8 @@ function TodoList() {
 
   async function markDone(todo) {
     try {
-      await fetch(`http://localhost:8000/updateTodo/${todo.id}/`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
+      await fetch(`http://localhost:8000/todolists/${todo.id}/`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({title:todo.title, description:todo.description, status:true}),
       });
       getData();
@@ -442,8 +442,8 @@ function TodoList() {
 
   async function markUndone(todo) {
     try {
-      await fetch(`http://localhost:8000/updateTodo/${todo.id}/`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
+      await fetch(`http://localhost:8000/todolist/${todo.id}/`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({title:todo.title, description:todo.description, status:false}),
       });
       getData();
@@ -451,7 +451,7 @@ function TodoList() {
   }
 
   async function deleteDoneTodo(id) {
-    try { await fetch(`http://localhost:8000/deleteTodo/${id}/`, {method:'POST'}); getData(); }
+    try { await fetch(`http://localhost:8000/todolists/${id}/`, {method:'DELETE'}); getData(); }
     catch(e){ console.error(e); } finally {
       clearTimeout(blackHoleTimer.current);
       blackHoleTimer.current = setTimeout(()=>setBlackHoleVisible(false), 800);
@@ -463,8 +463,8 @@ function TodoList() {
 
   async function updateTodo(id){
     try {
-      await fetch(`http://localhost:8000/updateTodo/${id}/`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
+      await fetch(`http://localhost:8000/todolists/${id}/`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({title:editingTitle, description:editingDescription, status:false}),
       });
       cancelEdit(); getData();
